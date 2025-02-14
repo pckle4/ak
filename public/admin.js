@@ -143,7 +143,7 @@ document.getElementById('court2status').addEventListener('change', () => {
 });
 
 // Initial data load
-fetch('/match-data')
+fetch('https://ak-sable.vercel.app/match-data')
     .then(response => response.json())
     .then(data => {
         updateAdminFormFromData(data);
