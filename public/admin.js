@@ -1,5 +1,5 @@
 // Event Source for real-time updates
-const eventSource = new EventSource('/events');
+const eventSource = new EventSource('https://ak-sable.vercel.app/events');
 
 eventSource.onmessage = function(event) {
     const data = JSON.parse(event.data);
