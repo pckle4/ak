@@ -9,6 +9,17 @@ const DATA_FILE = path.join(__dirname, 'data', 'matchState.json');
 // Middleware to parse JSON
 app.use(express.json());
 
+// CORS Middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://<username>.github.io'); // Replace with your GitHub Pages URL
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 // Load state from file
 async function loadState() {
     try {
@@ -16,15 +27,22 @@ async function loadState() {
         return JSON.parse(data);
     } catch (error) {
         if (error.code === 'ENOENT') {
+            console.log('No saved state found. Initializing default state.');
             return null;
         }
+        console.error('Error loading state:', error.message);
         throw error;
     }
 }
 
 // Save state to file
 async function saveState(state) {
-    await fs.writeFile(DATA_FILE, JSON.stringify(state, null, 2));
+    try {
+        await fs.writeFile(DATA_FILE, JSON.stringify(state, null, 2));
+    } catch (error) {
+        console.error('Error saving state:', error.message);
+        throw error;
+    }
 }
 
 // Match state storage
@@ -50,21 +68,18 @@ let matchState = {
 };
 
 // SSE client connections
-let clients = [];
+let clients = new Set();
 
 // Middleware
 app.use(express.static('public'));
 
-
 // Timer update function
 function updateTimers() {
     const currentTime = Date.now();
-
     ['court1', 'court2'].forEach(court => {
         if (matchState[court].status === 'live') {
             const timePassed = Math.floor((currentTime - matchState[court].lastUpdateTime) / 1000);
             matchState[court].timeRemaining = Math.max(0, matchState[court].timeRemaining - timePassed);
-            // Status will only be changed through admin panel, not automatically
         }
         matchState[court].lastUpdateTime = currentTime;
     });
@@ -75,20 +90,19 @@ app.get('/events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Origin', 'https://<username>.github.io'); // Replace with your GitHub Pages URL
 
     const clientId = Date.now();
     const newClient = {
         id: clientId,
         res
     };
-    clients.push(newClient);
 
+    clients.add(newClient);
     req.on('close', () => {
-        clients = clients.filter(client => client.id !== clientId);
+        clients.delete(newClient);
     });
 
-    // Send initial state
     sendEventToClient(newClient, matchState);
 });
 
@@ -98,10 +112,16 @@ function sendEventToClient(client, data) {
 
 function broadcastEvent(data) {
     updateTimers();
-    clients.forEach(client => sendEventToClient(client, matchState));
+    for (const client of clients) {
+        sendEventToClient(client, data);
+    }
 }
 
 // Routes
+app.get('/', (req, res) => {
+    res.send('<h1>Welcome to the Backend Server</h1>');
+});
+
 app.get('/match-data', (req, res) => {
     updateTimers();
     res.json(matchState);
@@ -110,34 +130,28 @@ app.get('/match-data', (req, res) => {
 app.post('/update-match', async (req, res) => {
     try {
         const newState = req.body;
+
         ['court1', 'court2'].forEach(court => {
             if (newState[court]) {
-                // Only update the status if it's explicitly provided
                 if (newState[court].status) {
                     if (newState[court].status === 'completed') {
                         matchState[court].timeRemaining = 600;
                     }
                     matchState[court].status = newState[court].status;
                 }
-
-                // Update other fields if provided
                 if (newState[court].team1) matchState[court].team1 = newState[court].team1;
                 if (newState[court].team2) matchState[court].team2 = newState[court].team2;
                 if (newState[court].servingTeam) matchState[court].servingTeam = newState[court].servingTeam;
-
-                // Always update lastUpdateTime
                 matchState[court].lastUpdateTime = Date.now();
             }
         });
 
-        // Update upcoming matches and next match if provided
         if (newState.upcoming) matchState.upcoming = newState.upcoming;
         if (newState.nextMatch) matchState.nextMatch = newState.nextMatch;
 
-        // Save state to file
         await saveState(matchState);
-
         broadcastEvent(matchState);
+
         res.json({ status: 'success' });
     } catch (error) {
         console.error('Error updating match state:', error);
@@ -150,15 +164,31 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+// Catch-all route
+app.all('*', (req, res) => {
+    res.status(404).json({ error: 'Route not found' });
+});
+
 // Regular interval updates for connected clients
 setInterval(() => {
-    if (clients.length > 0) {
+    if (clients.size > 0) {
         broadcastEvent(matchState);
     }
 }, 1000);
 
-// Start server
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// Initialize matchState on server start
+(async () => {
+    try {
+        const savedState = await loadState();
+        if (savedState) {
+            matchState = savedState;
+        }
+    } catch (error) {
+        console.error('Failed to initialize matchState:', error.message);
+    }
+
+    const PORT = process.env.PORT || 8000;
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+})();
