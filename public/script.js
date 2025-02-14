@@ -71,7 +71,7 @@ function updateUpcomingList(upcoming) {
 }
 
 // Initial data load
-fetch('/match-data')
+fetch('https://ak-sable.vercel.app/match-data')
     .then(response => response.json())
     .then(data => {
         updateDisplayFromData(data);
