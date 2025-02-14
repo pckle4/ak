@@ -82,7 +82,7 @@ function showSaveFeedback() {
 
 async function saveDataToServer(data) {
     try {
-        const response = await fetch('/update-match', {
+        const response = await fetch('https://ak-sable.vercel.app/update-match', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
