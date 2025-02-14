@@ -11,7 +11,7 @@ app.use(express.json());
 
 // CORS Middleware
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://<username>.github.io'); // Replace with your GitHub Pages URL
+    res.header('Access-Control-Allow-Origin', 'https://pckle4.github.io'); // Replace with your GitHub Pages URL
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     if (req.method === 'OPTIONS') {
@@ -90,7 +90,7 @@ app.get('/events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', 'https://<username>.github.io'); // Replace with your GitHub Pages URL
+    res.setHeader('Access-Control-Allow-Origin', 'https://pckle4.github.io'); // Replace with your GitHub Pages URL
 
     const clientId = Date.now();
     const newClient = {
