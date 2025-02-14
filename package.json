@@ -6,6 +6,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
+
+
+  "scripts": {
+    "build": "cp -r public/* docs/"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
