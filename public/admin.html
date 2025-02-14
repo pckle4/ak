@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Pickleball Match Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Comic+Neue&family=Luckiest+Guy&family=Poppins&family=Rubik+Bubbles&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1 class="title">🥒 Pickleball Pro Matches - Admin</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="admin-panel show">
+            <div class="admin-header">🎾 Admin Controls</div>
+            <form class="admin-form" id="matchForm">
+                <!-- Court 1 Controls -->
+                <div class="court-control">
+                    <h3>Court 1 Match</h3>
+                    <div class="form-group">
+                        <label>Team 1 Name</label>
+                        <input type="text" id="court1team1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Team 2 Name</label>
+                        <input type="text" id="court1team2" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Serving Team</label>
+                        <select id="court1servingTeam">
+                            <option value="team1">Team 1</option>
+                            <option value="team2">Team 2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Match Status</label>
+                        <select id="court1status" class="match-status">
+                            <option value="paused">Paused</option>
+                            <option value="live">Live</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="timer-display" id="court1timer">
+                        Time Remaining: 10:00
+                    </div>
+                </div>
+
+                <!-- Court 2 Controls -->
+                <div class="court-control">
+                    <h3>Court 2 Match</h3>
+                    <div class="form-group">
+                        <label>Team 1 Name</label>
+                        <input type="text" id="court2team1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Team 2 Name</label>
+                        <input type="text" id="court2team2" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Serving Team</label>
+                        <select id="court2servingTeam">
+                            <option value="team1">Team 1</option>
+                            <option value="team2">Team 2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Match Status</label>
+                        <select id="court2status" class="match-status">
+                            <option value="paused">Paused</option>
+                            <option value="live">Live</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="timer-display" id="court2timer">
+                        Time Remaining: 10:00
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Next Match</label>
+                    <input type="text" id="nextMatch">
+                </div>
+                
+                <h3>Upcoming Matches</h3>
+                <div id="upcomingMatches"></div>
+                
+                <div class="admin-buttons">
+                    <button type="button" class="admin-btn" onclick="addMatchField()">
+                        Add Match ➕
+                    </button>
+                    <button type="submit" class="admin-btn save">
+                        Save All 💾
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="made-by">
+        Made with ❤️ by Ansh
+    </footer>
+
+    <script src="admin.js"></script>
+</body>
+</html>
