@@ -7,11 +7,11 @@ app.use(express.json());
 
 // CORS Middleware
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://pckle4.github.io'); // Replace with your GitHub Pages URL
+    res.header('Access-Control-Allow-Origin', 'https://pckle4.github.io');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     if (req.method === 'OPTIONS') {
-        return res.sendStatus(200); // Respond to preflight requests
+        return res.sendStatus(200);
     }
     next();
 });
@@ -70,7 +70,6 @@ app.get('/events', (req, res) => {
     req.on('close', () => {
         clients = clients.filter(client => client.id !== clientId);
     });
-    // Send initial state
     sendEventToClient(newClient, matchState);
 });
 
@@ -93,24 +92,28 @@ app.post('/update-match', (req, res) => {
     const newState = req.body;
     ['court1', 'court2'].forEach(court => {
         if (newState[court]) {
-            const wasLive = matchState[court].status === 'live';
-            const willBeLive = newState[court].status === 'live';
-            const currentStatus = matchState[court].status;
-            const newStatus = newState[court].status;
-            if (newStatus === 'completed') {
-                newState[court].timeRemaining = 600; // Reset only when explicitly completed
-                newState[court].lastUpdateTime = Date.now();
-            } else {
-                newState[court].timeRemaining = matchState[court].timeRemaining;
-                newState[court].lastUpdateTime = Date.now();
+            // Only update the status if it's explicitly provided
+            if (newState[court].status) {
+                if (newState[court].status === 'completed') {
+                    matchState[court].timeRemaining = 600;
+                }
+                matchState[court].status = newState[court].status;
             }
-            newState[court].status = newStatus;
+            
+            // Update other fields if provided
+            if (newState[court].team1) matchState[court].team1 = newState[court].team1;
+            if (newState[court].team2) matchState[court].team2 = newState[court].team2;
+            if (newState[court].servingTeam) matchState[court].servingTeam = newState[court].servingTeam;
+            
+            // Always update lastUpdateTime
+            matchState[court].lastUpdateTime = Date.now();
         }
     });
-    matchState = {
-        ...matchState,
-        ...newState
-    };
+
+    // Update upcoming matches and next match if provided
+    if (newState.upcoming) matchState.upcoming = newState.upcoming;
+    if (newState.nextMatch) matchState.nextMatch = newState.nextMatch;
+
     broadcastEvent(matchState);
     res.json({ status: 'success' });
 });
@@ -143,5 +146,4 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-// Export the app for Vercel
 module.exports = app;
