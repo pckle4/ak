@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pickleball Match Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Comic+Neue&family=Luckiest+Guy&family=Poppins&family=Rubik+Bubbles&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1 class="title">🥒 Pickleball Pro Matches</h1>
+            <div class="live-badge">LIVE NOW</div>
+        </div>
+    </div>
+
+    <div class="container" id="displaySection">
+        <!-- Court 1 Display -->
+        <div class="court-section court-1">
+            <div class="court-number">Court 1 🏟️</div>
+            <div class="current-match">
+                <div class="match-status-badge" id="court1StatusBadge">PAUSED</div>
+                <div class="match-timer" id="court1TimerDisplay">10:00</div>
+                <div class="teams">
+                    <div class="team team1">
+                        <h2 id="court1displayTeam1">Team A</h2>
+                        <p id="court1serveStatus">Current Serve</p>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="team team2">
+                        <h2 id="court1displayTeam2">Team B</h2>
+                        <p>Receiving</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Court 2 Display -->
+        <div class="court-section court-2">
+            <div class="court-number">Court 2 🏟️</div>
+            <div class="current-match">
+                <div class="match-status-badge" id="court2StatusBadge">PAUSED</div>
+                <div class="match-timer" id="court2TimerDisplay">10:00</div>
+                <div class="teams">
+                    <div class="team team1">
+                        <h2 id="court2displayTeam1">Team C</h2>
+                        <p id="court2serveStatus">Current Serve</p>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="team team2">
+                        <h2 id="court2displayTeam2">Team D</h2>
+                        <p>Receiving</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="next-up">
+            <h3>Next Up: <span id="nextMatchDisplay">Upcoming Match</span> 🏓</h3>
+        </div>
+
+        <div class="schedule">
+            <h2>Today's Matches</h2>
+            <div id="upcomingList"></div>
+        </div>
+    </div>
+
+    <footer class="made-by">
+        Made with ❤️ by Ansh
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
