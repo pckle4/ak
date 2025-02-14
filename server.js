@@ -2,9 +2,22 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
-// Middleware
-app.use(express.static('public')); // Serve static files from the "public" folder
-app.use(express.json()); // Parse JSON request bodies
+// Middleware to parse JSON
+app.use(express.json());
+
+// CORS Middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://pckle4.github.io'); // Replace with your GitHub Pages URL
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200); // Respond to preflight requests
+    }
+    next();
+});
+
+// Serve static files from the "public" folder
+app.use(express.static('public'));
 
 // Match state storage
 let matchState = {
@@ -48,7 +61,6 @@ app.get('/events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
     const clientId = Date.now();
     const newClient = {
         id: clientId,
