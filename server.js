@@ -22,19 +22,19 @@ app.use(express.static('public'));
 // Match state storage (in-memory)
 let matchState = {
     court1: {
-        team1: 'Team A',
-        team2: 'Team B',
+        team1: '', // Team 1 name (selected from dropdown)
+        team2: '', // Team 2 name (selected from dropdown)
         servingTeam: 'team1',
-        status: 'paused',
-        timeRemaining: 600,
+        status: 'paused', // Status: paused, live, completed
+        timeRemaining: 600, // Timer in seconds
         lastUpdateTime: Date.now()
     },
     court2: {
-        team1: 'Team C',
-        team2: 'Team D',
+        team1: '', // Team 1 name (selected from dropdown)
+        team2: '', // Team 2 name (selected from dropdown)
         servingTeam: 'team1',
-        status: 'paused',
-        timeRemaining: 600,
+        status: 'paused', // Status: paused, live, completed
+        timeRemaining: 600, // Timer in seconds
         lastUpdateTime: Date.now()
     },
     nextMatch: 'Upcoming Match',
@@ -81,17 +81,10 @@ function sendEventToClient(client, data) {
     client.res.write(`data: ${JSON.stringify(data)}\n\n`);
 }
 
-let previousState = null;
-
 function broadcastEvent(newState) {
     updateTimers(); // Update timers before broadcasting
-
-    // Only broadcast if the state has changed
-    if (JSON.stringify(newState) !== JSON.stringify(previousState)) {
-        previousState = { ...newState }; // Deep copy the new state
-        for (const client of clients) {
-            sendEventToClient(client, newState);
-        }
+    for (const client of clients) {
+        sendEventToClient(client, newState);
     }
 }
 
@@ -113,7 +106,7 @@ app.post('/update-match', (req, res) => {
             if (newState[court]) {
                 if (newState[court].status) {
                     if (newState[court].status === 'completed') {
-                        matchState[court].timeRemaining = 600;
+                        matchState[court].timeRemaining = 600; // Reset timer on completion
                     }
                     matchState[court].status = newState[court].status;
                 }
