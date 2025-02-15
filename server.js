@@ -81,10 +81,17 @@ function sendEventToClient(client, data) {
     client.res.write(`data: ${JSON.stringify(data)}\n\n`);
 }
 
-function broadcastEvent(data) {
+let previousState = null;
+
+function broadcastEvent(newState) {
     updateTimers(); // Update timers before broadcasting
-    for (const client of clients) {
-        sendEventToClient(client, data);
+
+    // Only broadcast if the state has changed
+    if (JSON.stringify(newState) !== JSON.stringify(previousState)) {
+        previousState = { ...newState }; // Deep copy the new state
+        for (const client of clients) {
+            sendEventToClient(client, newState);
+        }
     }
 }
 
