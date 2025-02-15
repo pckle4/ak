@@ -1,17 +1,13 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs').promises;
 const app = express();
-
-// Define data file path
-const DATA_FILE = path.join(__dirname, 'data', 'matchState.json');
 
 // Middleware to parse JSON
 app.use(express.json());
 
 // CORS Middleware
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://pckle4.github.io'); // Replace with your GitHub Pages URL
+    res.header('Access-Control-Allow-Origin', 'https://pckle4.github.io'); // Allow your GitHub Pages URL
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     if (req.method === 'OPTIONS') {
@@ -20,32 +16,10 @@ app.use((req, res, next) => {
     next();
 });
 
-// Load state from file
-async function loadState() {
-    try {
-        const data = await fs.readFile(DATA_FILE, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        if (error.code === 'ENOENT') {
-            console.log('No saved state found. Initializing default state.');
-            return null;
-        }
-        console.error('Error loading state:', error.message);
-        throw error;
-    }
-}
+// Serve static files
+app.use(express.static('public'));
 
-// Save state to file
-async function saveState(state) {
-    try {
-        await fs.writeFile(DATA_FILE, JSON.stringify(state, null, 2));
-    } catch (error) {
-        console.error('Error saving state:', error.message);
-        throw error;
-    }
-}
-
-// Match state storage
+// Match state storage (in-memory)
 let matchState = {
     court1: {
         team1: 'Team A',
@@ -70,9 +44,6 @@ let matchState = {
 // SSE client connections
 let clients = new Set();
 
-// Middleware
-app.use(express.static('public'));
-
 // Timer update function
 function updateTimers() {
     const currentTime = Date.now();
@@ -90,7 +61,7 @@ app.get('/events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', 'https://pckle4.github.io'); // Replace with your GitHub Pages URL
+    res.setHeader('Access-Control-Allow-Origin', 'https://pckle4.github.io');
 
     const clientId = Date.now();
     const newClient = {
@@ -98,12 +69,12 @@ app.get('/events', (req, res) => {
         res
     };
 
-    clients.add(newClient);
+    clients.add(newClient); // Add client to the Set
     req.on('close', () => {
-        clients.delete(newClient);
+        clients.delete(newClient); // Remove client when connection closes
     });
 
-    sendEventToClient(newClient, matchState);
+    sendEventToClient(newClient, matchState); // Send initial state
 });
 
 function sendEventToClient(client, data) {
@@ -111,7 +82,7 @@ function sendEventToClient(client, data) {
 }
 
 function broadcastEvent(data) {
-    updateTimers();
+    updateTimers(); // Update timers before broadcasting
     for (const client of clients) {
         sendEventToClient(client, data);
     }
@@ -127,7 +98,7 @@ app.get('/match-data', (req, res) => {
     res.json(matchState);
 });
 
-app.post('/update-match', async (req, res) => {
+app.post('/update-match', (req, res) => {
     try {
         const newState = req.body;
 
@@ -149,8 +120,7 @@ app.post('/update-match', async (req, res) => {
         if (newState.upcoming) matchState.upcoming = newState.upcoming;
         if (newState.nextMatch) matchState.nextMatch = newState.nextMatch;
 
-        await saveState(matchState);
-        broadcastEvent(matchState);
+        broadcastEvent(matchState); // Broadcast updated state to all clients
 
         res.json({ status: 'success' });
     } catch (error) {
@@ -172,23 +142,12 @@ app.all('*', (req, res) => {
 // Regular interval updates for connected clients
 setInterval(() => {
     if (clients.size > 0) {
-        broadcastEvent(matchState);
+        broadcastEvent(matchState); // Periodically broadcast updates
     }
 }, 1000);
 
-// Initialize matchState on server start
-(async () => {
-    try {
-        const savedState = await loadState();
-        if (savedState) {
-            matchState = savedState;
-        }
-    } catch (error) {
-        console.error('Failed to initialize matchState:', error.message);
-    }
-
-    const PORT = process.env.PORT || 8000;
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-})();
+// Start server
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+});
