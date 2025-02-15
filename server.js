@@ -78,6 +78,7 @@ app.get('/events', (req, res) => {
 });
 
 function sendEventToClient(client, data) {
+    console.log('Sending event to client:', data); // Log the data being sent
     client.res.write(`data: ${JSON.stringify(data)}\n\n`);
 }
 
@@ -104,22 +105,24 @@ app.post('/update-match', (req, res) => {
 
         ['court1', 'court2'].forEach(court => {
             if (newState[court]) {
-                if (newState[court].status) {
+                // Only update fields explicitly provided in the request
+                if (newState[court].status !== undefined) {
                     if (newState[court].status === 'completed') {
                         matchState[court].timeRemaining = 600; // Reset timer on completion
                     }
                     matchState[court].status = newState[court].status;
                 }
-                if (newState[court].team1) matchState[court].team1 = newState[court].team1;
-                if (newState[court].team2) matchState[court].team2 = newState[court].team2;
-                if (newState[court].servingTeam) matchState[court].servingTeam = newState[court].servingTeam;
+                if (newState[court].team1 !== undefined) matchState[court].team1 = newState[court].team1;
+                if (newState[court].team2 !== undefined) matchState[court].team2 = newState[court].team2;
+                if (newState[court].servingTeam !== undefined) matchState[court].servingTeam = newState[court].servingTeam;
                 matchState[court].lastUpdateTime = Date.now();
             }
         });
 
-        if (newState.upcoming) matchState.upcoming = newState.upcoming;
-        if (newState.nextMatch) matchState.nextMatch = newState.nextMatch;
+        if (newState.upcoming !== undefined) matchState.upcoming = newState.upcoming;
+        if (newState.nextMatch !== undefined) matchState.nextMatch = newState.nextMatch;
 
+        console.log('Updated matchState:', matchState); // Log the updated state
         broadcastEvent(matchState); // Broadcast updated state to all clients
 
         res.json({ status: 'success' });
