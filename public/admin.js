@@ -5,6 +5,7 @@ const teams = ['Team A', 'Team B', 'Team C', 'Team D', 'Team E', 'Team F'];
 const eventSource = new EventSource('https://ak-sable.vercel.app/events');
 eventSource.onmessage = function(event) {
     const newData = JSON.parse(event.data);
+    console.log('Received update from server:', newData); // Log the received data
     updateAdminFormFromData(newData); // Update the UI with new data
 };
 
@@ -162,6 +163,7 @@ document.getElementById('court2status').addEventListener('change', () => {
 fetch('https://ak-sable.vercel.app/match-data')
     .then(response => response.json())
     .then(data => {
+        console.log('Initial data loaded:', data); // Log the initial data
         updateAdminFormFromData(data);
     })
     .catch(error => console.error('Error loading data:', error));
